@@ -1,0 +1,5 @@
+{
+  "name": "SJK Narratives",
+  "description": "A clean, elegant, and performant website to publish and manage literary works like poems, essays, and short stories, built with React, TypeScript, and Supabase.",
+  "requestFramePermissions": []
+}
