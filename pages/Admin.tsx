@@ -61,6 +61,30 @@ const Admin: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "text/plain") {
+      toast.error("Please upload a valid .txt file.");
+      e.target.value = ''; // Clear the input
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const fileContent = event.target?.result as string;
+      setFormData(prev => ({ ...prev, content: fileContent }));
+      toast.success("File content loaded successfully.");
+    };
+    reader.onerror = () => {
+      toast.error("Failed to read the file.");
+    };
+    reader.readAsText(file);
+    
+    e.target.value = '';
+  };
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -193,7 +217,15 @@ const Admin: React.FC = () => {
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
+                        <div className="flex justify-between items-center">
+                            <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
+                             <div>
+                                <label htmlFor="file-upload" className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-500">
+                                    Upload from .txt
+                                </label>
+                                <input id="file-upload" type="file" className="hidden" accept=".txt" onChange={handleFileChange} />
+                            </div>
+                        </div>
                         <textarea name="content" id="content" rows={10} value={formData.content} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"/>
                     </div>
                      <div>
