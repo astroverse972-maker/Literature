@@ -37,8 +37,24 @@ export function useLiterature() {
         { event: '*', schema: 'public', table: 'literature' },
         (payload) => {
           console.log('Change received!', payload);
-          // Refetch all data to ensure consistency
-          fetchLiterature();
+          switch (payload.eventType) {
+            case 'INSERT':
+              setLiterature(prev => 
+                [...prev, payload.new as Literature].sort((a, b) => new Date(b.published_date).getTime() - new Date(a.published_date).getTime())
+              );
+              break;
+            case 'UPDATE':
+              setLiterature(prev =>
+                prev.map(work => (work.id === payload.new.id ? payload.new as Literature : work))
+                  .sort((a, b) => new Date(b.published_date).getTime() - new Date(a.published_date).getTime())
+              );
+              break;
+            case 'DELETE':
+              setLiterature(prev => prev.filter(work => work.id !== (payload.old as Literature).id));
+              break;
+            default:
+              break;
+          }
         }
       )
       .subscribe();

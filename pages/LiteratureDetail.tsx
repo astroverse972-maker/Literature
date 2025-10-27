@@ -6,10 +6,6 @@ import { useComments } from '../hooks/useComments';
 import AnimatedPage from '../components/AnimatedPage';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { GoogleGenAI } from '@google/genai';
-
-// IMPORTANT: Replace this with your actual Gemini API key
-const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
 
 const LiteratureDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,8 +17,6 @@ const LiteratureDetail: React.FC = () => {
   const [newComment, setNewComment] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [summary, setSummary] = useState('');
-  const [isSummarizing, setIsSummarizing] = useState(false);
 
   useEffect(() => {
     const fetchWork = async () => {
@@ -67,29 +61,6 @@ const LiteratureDetail: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  
-  const generateSummary = async () => {
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
-        toast.error("Gemini API key is not configured.");
-        return;
-    }
-    if (!work?.content) return;
-    setIsSummarizing(true);
-    setSummary('');
-    try {
-      const ai = new GoogleGenAI({apiKey: GEMINI_API_KEY});
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `Summarize the following text in about 50 words: ${work.content}`,
-      });
-      setSummary(response.text);
-    } catch (error) {
-      console.error('Error generating summary:', error);
-      toast.error('Could not generate summary.');
-    } finally {
-      setIsSummarizing(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -124,22 +95,6 @@ const LiteratureDetail: React.FC = () => {
             {work.content}
           </div>
         </article>
-
-        <div className="my-12">
-            <button
-                onClick={generateSummary}
-                disabled={isSummarizing}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded disabled:bg-blue-300"
-            >
-                {isSummarizing ? 'Summarizing...' : '✨ Generate Summary with AI'}
-            </button>
-            {summary && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-bold text-blue-800">AI Summary:</h4>
-                    <p className="text-blue-700">{summary}</p>
-                </div>
-            )}
-        </div>
 
         <section className="mt-12 border-t border-gray-200 pt-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Comments ({comments.length})</h2>
