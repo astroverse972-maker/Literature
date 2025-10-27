@@ -19,7 +19,7 @@ const Admin: React.FC = () => {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWork, setEditingWork] = useState<Literature | null>(null);
-  const [formData, setFormData] = useState<Partial<Omit<LiteratureDTO, 'author'>>>({
+  const [formData, setFormData] = useState<Partial<LiteratureDTO>>({
     title: '',
     type: 'Poem',
     content: '',
