@@ -67,13 +67,16 @@ const Admin: React.FC = () => {
       type: 'Poem',
       content: '',
       excerpt: '',
-      // Fix: Corrected typo from D.tsxate to Date.
       published_date: new Date().toISOString().split('T')[0],
       author: 'Admin',
     });
     setEditingWork(null);
-    setIsFormOpen(false);
   };
+  
+  const closeAndResetForm = () => {
+    resetForm();
+    setIsFormOpen(false);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +103,7 @@ const Admin: React.FC = () => {
             await addLiterature(workData);
             toast.success('Work added successfully!');
         }
-        resetForm();
+        closeAndResetForm();
     } catch (err: any) {
         toast.error(`Error: ${err.message}`);
     }
@@ -168,7 +171,7 @@ const Admin: React.FC = () => {
 
         {!isFormOpen ? (
              <button
-                onClick={() => { setIsFormOpen(true); setEditingWork(null); resetForm(); }}
+                onClick={() => { resetForm(); setIsFormOpen(true); }}
                 className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors mb-8"
             >
                 + Add New Work
@@ -208,7 +211,7 @@ const Admin: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex justify-end gap-4">
-                        <button type="button" onClick={resetForm} className="bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                        <button type="button" onClick={closeAndResetForm} className="bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
                         <button type="submit" className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">{editingWork ? 'Update' : 'Save'}</button>
                     </div>
                 </form>
