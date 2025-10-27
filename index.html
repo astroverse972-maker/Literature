@@ -22,6 +22,16 @@
 </head>
   <body class="bg-gray-50 text-gray-800">
     <div id="root"></div>
+    
+    <!-- Libraries for file parsing -->
+    <script src="https://unpkg.com/pdfjs-dist@4.5.136/build/pdf.min.js"></script>
+    <script>
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.5.136/build/pdf.worker.min.js';
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/striprtf@1.0.2/browser.js"></script>
+    
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

@@ -6,6 +6,10 @@ import { Literature, LiteratureDTO, LiteratureType } from '../types';
 import AnimatedPage from '../components/AnimatedPage';
 import toast from 'react-hot-toast';
 
+// Declare global libraries loaded from script tags in index.html
+declare const pdfjsLib: any;
+declare const striprtf: any;
+
 const Admin: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -65,24 +69,67 @@ const Admin: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== "text/plain") {
-      toast.error("Please upload a valid .txt file.");
-      e.target.value = ''; // Clear the input
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const fileContent = event.target?.result as string;
-      setFormData(prev => ({ ...prev, content: fileContent }));
-      toast.success("File content loaded successfully.");
-    };
-    reader.onerror = () => {
-      toast.error("Failed to read the file.");
-    };
-    reader.readAsText(file);
+    const extension = file.name.split('.').pop()?.toLowerCase();
     
+    // Clear the input so the same file can be uploaded again
     e.target.value = '';
+
+    if (extension === 'txt') {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileContent = event.target?.result as string;
+        setFormData(prev => ({ ...prev, content: fileContent }));
+        toast.success("TXT content loaded successfully.");
+      };
+      reader.onerror = () => toast.error("Failed to read the file.");
+      reader.readAsText(file);
+    } else if (extension === 'rtf') {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileContent = event.target?.result as string;
+        try {
+          const plainText = striprtf.fromRtf(fileContent);
+          setFormData(prev => ({ ...prev, content: plainText }));
+          toast.success("RTF content loaded successfully.");
+        } catch (error) {
+          console.error("Error parsing RTF:", error);
+          toast.error("Failed to parse RTF file.");
+          setFormData(prev => ({ ...prev, content: fileContent })); // Fallback
+        }
+      };
+      reader.onerror = () => toast.error("Failed to read the file.");
+      reader.readAsText(file);
+    } else if (extension === 'pdf') {
+      if (typeof pdfjsLib === 'undefined') {
+          toast.error("PDF library is not loaded. Please try again.");
+          return;
+      }
+      const toastId = toast.loading('Parsing PDF...');
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+          const typedarray = new Uint8Array(event.target!.result as ArrayBuffer);
+          try {
+              const loadingTask = pdfjsLib.getDocument(typedarray);
+              const pdf = await loadingTask.promise;
+              let fullText = '';
+              for (let i = 1; i <= pdf.numPages; i++) {
+                  const page = await pdf.getPage(i);
+                  const textContent = await page.getTextContent();
+                  const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                  fullText += pageText + (i < pdf.numPages ? '\n\n' : '');
+              }
+              setFormData(prev => ({ ...prev, content: fullText.trim() }));
+              toast.success("PDF content loaded successfully.", { id: toastId });
+          } catch (error) {
+              console.error("Error parsing PDF:", error);
+              toast.error("Failed to parse PDF file.", { id: toastId });
+          }
+      };
+      reader.onerror = () => toast.error("Failed to read the file.", { id: toastId });
+      reader.readAsArrayBuffer(file);
+    } else {
+        toast.error("Unsupported file type. Please upload a .txt, .rtf, or .pdf file.");
+    }
   };
 
   const resetForm = () => {
@@ -221,9 +268,9 @@ const Admin: React.FC = () => {
                             <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
                              <div>
                                 <label htmlFor="file-upload" className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-500">
-                                    Upload from .txt
+                                    Upload File
                                 </label>
-                                <input id="file-upload" type="file" className="hidden" accept=".txt" onChange={handleFileChange} />
+                                <input id="file-upload" type="file" className="hidden" accept=".txt,.rtf,.pdf" onChange={handleFileChange} />
                             </div>
                         </div>
                         <textarea name="content" id="content" rows={10} value={formData.content} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"/>
