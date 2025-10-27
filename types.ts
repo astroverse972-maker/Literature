@@ -9,7 +9,6 @@ export interface Literature {
   content: string;
   excerpt?: string;
   published_date: string;
-  author: string;
 }
 
 export type LiteratureDTO = Omit<Literature, 'id' | 'created_at' | 'updated_at'>;

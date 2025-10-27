@@ -19,13 +19,12 @@ const Admin: React.FC = () => {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWork, setEditingWork] = useState<Literature | null>(null);
-  const [formData, setFormData] = useState<Partial<LiteratureDTO>>({
+  const [formData, setFormData] = useState<Partial<Omit<LiteratureDTO, 'author'>>>({
     title: '',
     type: 'Poem',
     content: '',
     excerpt: '',
     published_date: new Date().toISOString().split('T')[0],
-    author: 'Admin',
   });
 
   useEffect(() => {
@@ -84,17 +83,23 @@ const Admin: React.FC = () => {
       reader.onerror = () => toast.error("Failed to read the file.");
       reader.readAsText(file);
     } else if (extension === 'rtf') {
+        if (typeof striprtf === 'undefined') {
+            toast.error("RTF parsing library is not loaded. Please try again.");
+            return;
+        }
       const reader = new FileReader();
       reader.onload = (event) => {
         const fileContent = event.target?.result as string;
         try {
           const plainText = striprtf.fromRtf(fileContent);
+          if (plainText === null || (plainText.trim() === '' && fileContent.trim() !== '')) {
+              throw new Error("Parser returned empty content.");
+          }
           setFormData(prev => ({ ...prev, content: plainText }));
           toast.success("RTF content loaded successfully.");
         } catch (error) {
           console.error("Error parsing RTF:", error);
-          toast.error("Failed to parse RTF file.");
-          setFormData(prev => ({ ...prev, content: fileContent })); // Fallback
+          toast.error("Failed to parse RTF file. The format may be too complex. Please try saving as a plain .txt file instead.");
         }
       };
       reader.onerror = () => toast.error("Failed to read the file.");
@@ -139,7 +144,6 @@ const Admin: React.FC = () => {
       content: '',
       excerpt: '',
       published_date: new Date().toISOString().split('T')[0],
-      author: 'Admin',
     });
     setEditingWork(null);
   };
@@ -152,7 +156,7 @@ const Admin: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.content || !formData.published_date || !formData.author || !formData.type) {
+    if (!formData.title || !formData.content || !formData.published_date || !formData.type) {
         toast.error("Please fill out all required fields.");
         return;
     }
@@ -161,7 +165,6 @@ const Admin: React.FC = () => {
         title: formData.title,
         content: formData.content,
         published_date: formData.published_date,
-        author: formData.author,
         type: formData.type as LiteratureType,
         excerpt: formData.excerpt || formData.content.substring(0, 150),
     };
@@ -188,7 +191,6 @@ const Admin: React.FC = () => {
         content: work.content,
         excerpt: work.excerpt,
         published_date: work.published_date.split('T')[0],
-        author: work.author,
     });
     setIsFormOpen(true);
   };
@@ -279,15 +281,9 @@ const Admin: React.FC = () => {
                         <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700">Excerpt (Optional)</label>
                         <textarea name="excerpt" id="excerpt" rows={3} value={formData.excerpt} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"/>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="published_date" className="block text-sm font-medium text-gray-700">Published Date</label>
-                            <input type="date" name="published_date" id="published_date" value={formData.published_date} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"/>
-                        </div>
-                        <div>
-                            <label htmlFor="author" className="block text-sm font-medium text-gray-700">Author</label>
-                            <input type="text" name="author" id="author" value={formData.author} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"/>
-                        </div>
+                    <div>
+                        <label htmlFor="published_date" className="block text-sm font-medium text-gray-700">Published Date</label>
+                        <input type="date" name="published_date" id="published_date" value={formData.published_date} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"/>
                     </div>
                     <div className="flex justify-end gap-4">
                         <button type="button" onClick={closeAndResetForm} className="bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
