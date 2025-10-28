@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Literature, LiteratureDTO } from '../types';
+import { getErrorMessage } from '../utils';
 
 export function useLiterature() {
   const [literature, setLiterature] = useState<Literature[]>([]);
@@ -19,8 +20,8 @@ export function useLiterature() {
       
       if (error) throw error;
       setLiterature(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       console.error("Error fetching literature:", err);
     } finally {
       setIsLoading(false);
@@ -88,5 +89,5 @@ export function useLiterature() {
     }
   };
 
-  return { literature, isLoading, error, addLiterature, updateLiterature, deleteLiterature };
+  return { literature, isLoading, error, addLiterature, updateLiterature, deleteLiterature, refetch: fetchLiterature };
 }

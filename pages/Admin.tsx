@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
@@ -15,7 +16,7 @@ const Admin: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { literature, addLiterature, updateLiterature, deleteLiterature, isLoading, error } = useLiterature();
+  const { literature, addLiterature, updateLiterature, deleteLiterature, isLoading, error, refetch } = useLiterature();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWork, setEditingWork] = useState<Literature | null>(null);
@@ -296,21 +297,34 @@ const Admin: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4">Manage Works</h2>
             {isLoading && <p>Loading works...</p>}
-            {error && <p className="text-red-500">Error: {error}</p>}
-            <ul className="space-y-3">
-                {literature.map(work => (
-                    <li key={work.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                        <div>
-                            <p className="font-semibold">{work.title}</p>
-                            <p className="text-sm text-gray-500">{work.type} - Published: {new Date(work.published_date).toLocaleDateString()}</p>
-                        </div>
-                        <div className="space-x-2">
-                           <button onClick={() => handleEdit(work)} className="text-sm bg-yellow-400 text-white py-1 px-3 rounded hover:bg-yellow-500">Edit</button>
-                           <button onClick={() => handleDelete(work.id)} className="text-sm bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600">Delete</button>
-                        </div>
-                    </li>
-                ))}
-            </ul>
+            {error && (
+                <div className="text-center text-red-500 bg-red-50 p-4 rounded-lg">
+                    <p className="font-semibold">Could not load works.</p>
+                    <p className="text-sm mt-1">Please check your internet connection and try again.</p>
+                    <button
+                        onClick={() => refetch()}
+                        className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            )}
+            {!isLoading && !error && (
+                 <ul className="space-y-3">
+                    {literature.map(work => (
+                        <li key={work.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                            <div>
+                                <p className="font-semibold">{work.title}</p>
+                                <p className="text-sm text-gray-500">{work.type} - Published: {new Date(work.published_date).toLocaleDateString()}</p>
+                            </div>
+                            <div className="space-x-2">
+                               <button onClick={() => handleEdit(work)} className="text-sm bg-yellow-400 text-white py-1 px-3 rounded hover:bg-yellow-500">Edit</button>
+                               <button onClick={() => handleDelete(work.id)} className="text-sm bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600">Delete</button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     </AnimatedPage>
   );

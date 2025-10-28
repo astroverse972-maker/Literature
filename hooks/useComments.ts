@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Comment, CommentDTO } from '../types';
+import { getErrorMessage } from '../utils';
 
 export function useComments(literatureId: string) {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -21,8 +22,8 @@ export function useComments(literatureId: string) {
       
       if (error) throw error;
       setComments(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       console.error("Error fetching comments:", err);
     } finally {
       setIsLoading(false);

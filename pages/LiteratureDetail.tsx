@@ -1,44 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import { Literature } from '../types';
 import { useComments } from '../hooks/useComments';
 import AnimatedPage from '../components/AnimatedPage';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useLiteratureDetail } from '../hooks/useLiteratureDetail';
 
 const LiteratureDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [work, setWork] = useState<Literature | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { work, isLoading, error, refetch } = useLiteratureDetail(id);
   const { comments, addComment, isLoading: isCommentsLoading } = useComments(id!);
   
   const [newComment, setNewComment] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const fetchWork = async () => {
-      if (!id) return;
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('literature')
-          .select('*')
-          .eq('id', id)
-          .single();
-        if (error) throw error;
-        setWork(data);
-      } catch (err: any) {
-        setError(err.message);
-        console.error("Error fetching literature detail:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchWork();
-  }, [id]);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +46,20 @@ const LiteratureDetail: React.FC = () => {
   }
 
   if (error) {
-    return <div className="text-center text-red-500">Error: {error}</div>;
+    return (
+      <AnimatedPage>
+        <div className="text-center text-red-600 bg-red-50 p-6 rounded-lg max-w-lg mx-auto">
+          <h2 className="text-xl font-bold mb-2">Failed to load this work</h2>
+          <p className="mb-4 text-gray-700">{error}</p>
+          <button
+            onClick={() => refetch()}
+            className="bg-red-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </AnimatedPage>
+    );
   }
   
   if (!work) {

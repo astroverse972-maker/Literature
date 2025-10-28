@@ -2,24 +2,8 @@
 import React from 'react';
 import { useLiterature } from '../hooks/useLiterature';
 import AnimatedPage from '../components/AnimatedPage';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
-const LiteratureCard: React.FC<{ work: import('../types').Literature }> = ({ work }) => {
-  return (
-    <motion.div
-        whileHover={{ y: -5, boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)" }}
-        transition={{ duration: 0.3 }}
-        className="bg-white rounded-lg shadow-md overflow-hidden"
-    >
-      <Link to={`/literature/${work.id}`} className="block p-6 h-full">
-        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{work.type}</p>
-        <h3 className="text-xl font-bold text-gray-800 mt-2">{work.title}</h3>
-        {work.excerpt && <p className="text-gray-600 mt-3 text-sm">{work.excerpt}</p>}
-      </Link>
-    </motion.div>
-  );
-};
+import LiteratureCard from '../components/LiteratureCard';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,7 +22,7 @@ const itemVariants = {
 
 
 const LiteraturePage: React.FC = () => {
-  const { literature, isLoading, error } = useLiterature();
+  const { literature, isLoading, error, refetch } = useLiterature();
 
   if (isLoading) {
     return (
@@ -49,7 +33,21 @@ const LiteraturePage: React.FC = () => {
   }
 
   if (error) {
-    return <div className="text-center text-red-500">Error: {error}</div>;
+    return (
+      <AnimatedPage>
+        <div className="text-center text-red-600 bg-red-50 p-6 rounded-lg max-w-lg mx-auto">
+          <h2 className="text-xl font-bold mb-2">Failed to load literature</h2>
+          <p className="mb-4 text-gray-700">There was a problem fetching the data. Please check your internet connection and try again.</p>
+          <p className="text-sm text-gray-600 mb-4">(Note: Ad-blockers or browser extensions can sometimes cause this type of issue.)</p>
+          <button
+            onClick={() => refetch()}
+            className="bg-red-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </AnimatedPage>
+    );
   }
 
   return (
@@ -63,7 +61,7 @@ const LiteraturePage: React.FC = () => {
             animate="visible"
         >
           {literature.map((work) => (
-            <motion.div key={work.id} variants={itemVariants}>
+            <motion.div key={work.id} variants={itemVariants} className="h-full">
                 <LiteratureCard work={work} />
             </motion.div>
           ))}
