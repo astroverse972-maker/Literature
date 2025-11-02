@@ -1,4 +1,3 @@
-
 import React from 'react';
 import AnimatedPage from '../components/AnimatedPage';
 import { motion } from 'framer-motion';
@@ -9,7 +8,7 @@ const About: React.FC = () => {
       <div className="max-w-4xl mx-auto py-12">
         <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
           <motion.img 
-            src="https://res.cloudinary.com/dubg7bfmv/image/upload/v1761320210/3-3_f3ifqn.jpg" 
+            src="https://res.cloudinary.com/dubg7bfmv/image/upload/v1762088978/lit_yp7rob.jpg" 
             alt="Author Portrait" 
             className="rounded-lg shadow-lg w-48 md:w-64"
             initial={{ opacity: 0, scale: 0.5 }}

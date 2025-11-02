@@ -22,8 +22,7 @@ const itemVariants = {
 };
 
 const Home: React.FC = () => {
-  const { literature, isLoading, error, refetch } = useLiterature();
-  const recentWorks = literature.slice(0, 3);
+  const { literature: recentWorks, isLoading, error, refetch } = useLiterature(3);
 
   return (
     <AnimatedPage>
@@ -42,7 +41,7 @@ const Home: React.FC = () => {
 
           {isLoading && (
             <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+              <p className="text-gray-500">Loading recent works...</p>
             </div>
           )}
 

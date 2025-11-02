@@ -38,9 +38,6 @@ const AppContent = () => {
         </AnimatePresence>
       </main>
       <GlobalMusicPlayer />
-      <footer className="text-center py-4 text-gray-500 text-sm">
-          <p>&copy; {new Date().getFullYear()} SJK Narratives. All rights reserved.</p>
-      </footer>
     </div>
   );
 }

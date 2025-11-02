@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 import { Literature, LiteratureDTO } from '../types';
 import { getErrorMessage } from '../utils';
 
-export function useLiterature() {
+export function useLiterature(limit?: number) {
   const [literature, setLiterature] = useState<Literature[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,10 +13,16 @@ export function useLiterature() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('literature')
         .select('*')
         .order('published_date', { ascending: false });
+        
+      if (limit) {
+        query = query.limit(limit);
+      }
+
+      const { data, error } = await query;
       
       if (error) throw error;
       setLiterature(data || []);
@@ -26,18 +32,24 @@ export function useLiterature() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [limit]);
 
   useEffect(() => {
     fetchLiterature();
 
     const channel = supabase
-      .channel('literature-changes')
+      .channel(limit ? `literature-changes-limited-${limit}` : 'literature-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'literature' },
         (payload) => {
           console.log('Change received!', payload);
+
+          if (limit) {
+            fetchLiterature();
+            return;
+          }
+          
           switch (payload.eventType) {
             case 'INSERT':
               setLiterature(prev => 
@@ -63,7 +75,7 @@ export function useLiterature() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchLiterature]);
+  }, [fetchLiterature, limit]);
 
   const addLiterature = async (work: LiteratureDTO) => {
     const { error } = await supabase.from('literature').insert([work]);

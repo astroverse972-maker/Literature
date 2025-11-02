@@ -21,7 +21,7 @@ const GlobalMusicPlayer: React.FC = () => {
   
   return (
     <motion.div
-        className="fixed bottom-5 right-5 z-50"
+        className="fixed bottom-5 inset-x-0 flex justify-center z-50"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 1 }}
